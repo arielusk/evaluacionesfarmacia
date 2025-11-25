@@ -1,0 +1,2065 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Exámenes para Internos de Farmacia</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #60666b;
+            --secondary-color: #1e4976;
+            --accent-color: #4cc9f0;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            color: var(--dark-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 24px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info span {
+            font-weight: 500;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: var(--dark-color);
+        }
+
+        .btn-primary:hover {
+            background-color: #3ab8d8;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(76, 201, 240, 0.25);
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            border-bottom: 2px solid var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .question-item {
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .question-type {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .type-select {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+        }
+
+        .type-open {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .type-truefalse {
+            background-color: #fff3e0;
+            color: #e65100;
+        }
+
+        .type-interaction {
+            background-color: #f3e5f5;
+            color: #6a1b9a;
+        }
+
+        .options-list {
+            list-style-type: none;
+            margin-top: 10px;
+        }
+
+        .options-list li {
+            padding: 5px 0;
+        }
+
+        .exam-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .exam-item:last-child {
+            border-bottom: none;
+        }
+
+        .exam-title {
+            font-weight: 500;
+        }
+
+        .exam-date {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .result-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .result-score {
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .result-score.pass {
+            color: var(--success-color);
+        }
+
+        .result-score.fail {
+            color: var(--danger-color);
+        }
+
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .login-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .login-body {
+            padding: 30px;
+        }
+
+        .login-footer {
+            padding: 15px;
+            text-align: center;
+            background-color: #f8f9fa;
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 4px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background-color: var(--success-color);
+        }
+
+        .notification.error {
+            background-color: var(--danger-color);
+        }
+
+        .notification.warning {
+            background-color: var(--warning-color);
+            color: var(--dark-color);
+        }
+
+        .exam-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .question-container {
+            margin-bottom: 30px;
+        }
+
+        .question-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--secondary-color);
+        }
+
+        .answer-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .answer-option:hover {
+            background-color: #f0f2f5;
+        }
+
+        .answer-option input {
+            margin-right: 10px;
+        }
+
+        .answer-option.correct {
+            background-color: rgba(40, 167, 69, 0.1);
+            border-left: 3px solid var(--success-color);
+        }
+
+        .answer-option.incorrect {
+            background-color: rgba(220, 53, 69, 0.1);
+            border-left: 3px solid var(--danger-color);
+        }
+
+        .interaction-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .draggable-item {
+            padding: 8px 12px;
+            background-color: var(--accent-color);
+            color: var(--dark-color);
+            border-radius: 4px;
+            cursor: move;
+            user-select: none;
+        }
+
+        .drop-zone {
+            min-height: 50px;
+            border: 2px dashed #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .drop-zone.drag-over {
+            border-color: var(--accent-color);
+            background-color: rgba(76, 201, 240, 0.1);
+        }
+
+        .exam-timer {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--danger-color);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .exam-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .option-text {
+            flex: 1;
+        }
+
+        .question-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .import-export-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .import-export-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .tabs {
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .exam-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .import-export-buttons {
+                flex-direction: column;
+            }
+        }
+        .logo-infocal {
+            height: 50px;
+            width: auto;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="loginPage" class="login-container">
+        <div class="login-header">
+            <img src="https://static.wixstatic.com/media/b313d6_f12497daa1ba46779576c2c2e362fe55~mv2.jpg/v1/fill/w_150,h_150,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/b313d6_f12497daa1ba46779576c2c2e362fe55~mv2.jpg" alt="infocalscz" class="logo-infocal">
+               
+            <h2>Sistema de Exámenes</h2>
+            <p>Para Internos de Farmacia</p>
+        </div>
+        <div class="login-body">
+            <div class="form-group">
+                <label for="username">Usuario</label>
+                <input type="text" id="username" class="form-control" placeholder="Ingrese su usuario">
+            </div>
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" class="form-control" placeholder="Ingrese su contraseña">
+            </div>
+            <button id="loginBtn" class="btn btn-primary" style="width: 100%;">Iniciar Sesión</button>
+        </div>
+        <div class="login-footer">
+            <p>© 2025 Sistema SAS para Farmacia</p>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" style="display: none;">
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-pills"></i>
+                    <h1>Sistema de Exámenes - Farmacia</h1>
+                </div>
+                <div class="user-info">
+                    <span>Administrador</span>
+                    <button id="logoutBtn" class="btn btn-danger">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="tabs">
+                <div class="tab active" data-tab="users">Gestión de Usuarios</div>
+                <div class="tab" data-tab="exams">Gestión de Exámenes</div>
+                <div class="tab" data-tab="results">Resultados</div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="usersTab" class="tab-content active">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Crear Nuevo Usuario</h2>
+                    </div>
+                    <div class="form-group">
+                        <label for="newUsername">Usuario</label>
+                        <input type="text" id="newUsername" class="form-control" placeholder="Nombre de usuario">
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">Contraseña</label>
+                        <input type="password" id="newPassword" class="form-control" placeholder="Contraseña">
+                    </div>
+                    <div class="form-group">
+                        <label for="newFullName">Nombre Completo</label>
+                        <input type="text" id="newFullName" class="form-control" placeholder="Nombre completo del interno">
+                    </div>
+                    <button id="createUserBtn" class="btn btn-success">Crear Usuario</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Usuarios Registrados</h2>
+                    </div>
+                    <div class="import-export-section">
+                        <h3>Importar/Exportar Datos de Usuarios</h3>
+                        <div class="import-export-buttons">
+                            <button id="exportUsersBtn" class="btn btn-primary">
+                                <i class="fas fa-download"></i> Exportar Usuarios
+                            </button>
+                            <button id="importUsersBtn" class="btn btn-success">
+                                <i class="fas fa-upload"></i> Importar Usuarios
+                            </button>
+                            <input type="file" id="usersFileInput" accept=".json" style="display: none;">
+                        </div>
+                    </div>
+                    <div id="usersList">
+                        <div class="empty-state">
+                            <i class="fas fa-users"></i>
+                            <p>No hay usuarios registrados</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exams Tab -->
+            <div id="examsTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Crear Nuevo Examen</h2>
+                    </div>
+                    <div class="form-group">
+                        <label for="examTitle">Título del Examen</label>
+                        <input type="text" id="examTitle" class="form-control" placeholder="Título del examen">
+                    </div>
+                    <div class="form-group">
+                        <label for="examDescription">Descripción</label>
+                        <textarea id="examDescription" class="form-control" rows="3" placeholder="Descripción del examen"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="examTime">Tiempo Límite (minutos)</label>
+                        <input type="number" id="examTime" class="form-control" value="30" min="5" max="120">
+                    </div>
+                    <button id="createExamBtn" class="btn btn-success">Crear Examen</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Añadir Preguntas</h2>
+                        <select id="examSelect" class="form-control" style="width: 300px;">
+                            <option value="">Seleccionar un examen</option>
+                        </select>
+                    </div>
+                    
+                    <div id="questionForm" style="display: none;">
+                        <div class="form-group">
+                            <label for="questionText">Texto de la Pregunta</label>
+                            <textarea id="questionText" class="form-control" rows="3" placeholder="Escriba la pregunta"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="questionType">Tipo de Pregunta</label>
+                            <select id="questionType" class="form-control">
+                                <option value="select">Selección Múltiple</option>
+                                <option value="open">Respuesta Abierta</option>
+                                <option value="truefalse">Verdadero o Falso</option>
+                                <option value="interaction">Interacción</option>
+                            </select>
+                        </div>
+                        
+                        <div id="selectOptions" class="form-group">
+                            <label>Opciones de Respuesta</label>
+                            <div id="optionsContainer">
+                                <div class="option-item">
+                                    <input type="text" class="form-control option-text" placeholder="Opción 1">
+                                    <input type="radio" name="correctOption" value="0" class="correct-option"> Correcta
+                                </div>
+                                <div class="option-item">
+                                    <input type="text" class="form-control option-text" placeholder="Opción 2">
+                                    <input type="radio" name="correctOption" value="1" class="correct-option"> Correcta
+                                </div>
+                            </div>
+                            <button id="addOptionBtn" class="btn btn-primary">Añadir Opción</button>
+                        </div>
+                        
+                        <div id="trueFalseOptions" class="form-group" style="display: none;">
+                            <label>Respuesta Correcta</label>
+                            <div>
+                                <input type="radio" name="tfAnswer" value="true" id="tfTrue" checked>
+                                <label for="tfTrue">Verdadero</label>
+                                <input type="radio" name="tfAnswer" value="false" id="tfFalse" style="margin-left: 20px;">
+                                <label for="tfFalse">Falso</label>
+                            </div>
+                        </div>
+                        
+                        <div id="interactionOptions" class="form-group" style="display: none;">
+                            <label>Elementos para Arrastrar</label>
+                            <div id="draggableItems">
+                                <div class="draggable-item">Elemento 1</div>
+                                <div class="draggable-item">Elemento 2</div>
+                                <div class="draggable-item">Elemento 3</div>
+                            </div>
+                            <label>Zona de Destino</label>
+                            <div id="dropZone" class="drop-zone">
+                                Arrastre elementos aquí
+                            </div>
+                        </div>
+                        
+                        <button id="addQuestionBtn" class="btn btn-success">Añadir Pregunta</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Exámenes Creados</h2>
+                    </div>
+                    <div class="import-export-section">
+                        <h3>Importar/Exportar Datos de Exámenes</h3>
+                        <div class="import-export-buttons">
+                            <button id="exportExamsBtn" class="btn btn-primary">
+                                <i class="fas fa-download"></i> Exportar Exámenes
+                            </button>
+                            <button id="importExamsBtn" class="btn btn-success">
+                                <i class="fas fa-upload"></i> Importar Exámenes
+                            </button>
+                            <input type="file" id="examsFileInput" accept=".json" style="display: none;">
+                        </div>
+                    </div>
+                    <div id="examsList">
+                        <div class="empty-state">
+                            <i class="fas fa-clipboard-list"></i>
+                            <p>No hay exámenes creados</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Tab -->
+            <div id="resultsTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Resultados de Exámenes</h2>
+                        <button id="downloadResultsBtn" class="btn btn-primary">
+                            <i class="fas fa-download"></i> Descargar PDF
+                        </button>
+                    </div>
+                    <div id="resultsList">
+                        <div class="empty-state">
+                            <i class="fas fa-chart-bar"></i>
+                            <p>No hay resultados disponibles</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interno Dashboard -->
+    <div id="internoDashboard" style="display: none;">
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-pills"></i>
+                    <h1>Sistema de Exámenes - Farmacia</h1>
+                </div>
+                <div class="user-info">
+                    <span id="internoName">Interno</span>
+                    <button id="internoLogoutBtn" class="btn btn-danger">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Exámenes Disponibles</h2>
+                </div>
+                <div id="availableExams">
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p>No hay exámenes disponibles</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Mis Resultados</h2>
+                </div>
+                <div id="myResults">
+                    <div class="empty-state">
+                        <i class="fas fa-chart-bar"></i>
+                        <p>No has completado ningún examen</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exam Taking Page -->
+    <div id="examPage" style="display: none;">
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-pills"></i>
+                    <h1 id="examPageTitle">Examen</h1>
+                </div>
+                <div class="user-info">
+                    <div id="examTimer" class="exam-timer">Tiempo restante: --:--</div>
+                    <button id="exitExamBtn" class="btn btn-danger">
+                        <i class="fas fa-sign-out-alt"></i> Salir
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="container exam-container">
+            <div id="examQuestions">
+                <!-- Questions will be loaded here -->
+            </div>
+            
+            <div class="exam-actions">
+                <button id="prevQuestionBtn" class="btn btn-primary" disabled>
+                    <i class="fas fa-arrow-left"></i> Anterior
+                </button>
+                <div id="questionIndicator">Pregunta 1 de 1</div>
+                <button id="nextQuestionBtn" class="btn btn-primary">
+                    Siguiente <i class="fas fa-arrow-right"></i>
+                </button>
+                <button id="submitExamBtn" class="btn btn-success" style="display: none;">
+                    <i class="fas fa-check"></i> Enviar Examen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Exam Modal -->
+    <div id="editExamModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Editar Examen</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="editExamTitle">Título del Examen</label>
+                <input type="text" id="editExamTitle" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="editExamDescription">Descripción</label>
+                <textarea id="editExamDescription" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="editExamTime">Tiempo Límite (minutos)</label>
+                <input type="number" id="editExamTime" class="form-control" min="5" max="120">
+            </div>
+            <div class="form-group">
+                <button id="saveExamBtn" class="btn btn-success">Guardar Cambios</button>
+                <button id="cancelEditExamBtn" class="btn btn-danger">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Question Modal -->
+    <div id="editQuestionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Editar Pregunta</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="editQuestionText">Texto de la Pregunta</label>
+                <textarea id="editQuestionText" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="editQuestionType">Tipo de Pregunta</label>
+                <select id="editQuestionType" class="form-control">
+                    <option value="select">Selección Múltiple</option>
+                    <option value="open">Respuesta Abierta</option>
+                    <option value="truefalse">Verdadero o Falso</option>
+                    <option value="interaction">Interacción</option>
+                </select>
+            </div>
+            
+            <div id="editSelectOptions" class="form-group">
+                <label>Opciones de Respuesta</label>
+                <div id="editOptionsContainer">
+                    <!-- Options will be loaded here -->
+                </div>
+                <button id="editAddOptionBtn" class="btn btn-primary">Añadir Opción</button>
+            </div>
+            
+            <div id="editTrueFalseOptions" class="form-group" style="display: none;">
+                <label>Respuesta Correcta</label>
+                <div>
+                    <input type="radio" name="editTfAnswer" value="true" id="editTfTrue">
+                    <label for="editTfTrue">Verdadero</label>
+                    <input type="radio" name="editTfAnswer" value="false" id="editTfFalse" style="margin-left: 20px;">
+                    <label for="editTfFalse">Falso</label>
+                </div>
+            </div>
+            
+            <div id="editInteractionOptions" class="form-group" style="display: none;">
+                <label>Elementos para Arrastrar</label>
+                <div id="editDraggableItems">
+                    <!-- Draggable items will be loaded here -->
+                </div>
+                <label>Zona de Destino</label>
+                <div id="editDropZone" class="drop-zone">
+                    Arrastre elementos aquí
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <button id="saveQuestionBtn" class="btn btn-success">Guardar Cambios</button>
+                <button id="cancelEditQuestionBtn" class="btn btn-danger">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Data storage
+        let users = [
+            { username: 'administrador', password: 'ariel%10', role: 'admin', fullName: 'Administrador' },
+            { username: 'interno', password: 'interno', role: 'interno', fullName: 'Interno de Farmacia' }
+        ];
+
+        let exams = [];
+        let questions = [];
+        let results = [];
+        let currentUser = null;
+        let currentExam = null;
+        let currentQuestionIndex = 0;
+        let examTimer = null;
+        let timeRemaining = 0;
+        let examBeingEdited = null;
+        let questionBeingEdited = null;
+
+        // DOM elements
+        const loginPage = document.getElementById('loginPage');
+        const adminDashboard = document.getElementById('adminDashboard');
+        const internoDashboard = document.getElementById('internoDashboard');
+        const examPage = document.getElementById('examPage');
+        const notification = document.getElementById('notification');
+        const editExamModal = document.getElementById('editExamModal');
+        const editQuestionModal = document.getElementById('editQuestionModal');
+
+        // Login functionality
+        document.getElementById('loginBtn').addEventListener('click', function() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                showNotification('Por favor ingrese usuario y contraseña', 'error');
+                return;
+            }
+
+            const user = users.find(u => u.username === username && u.password === password);
+
+            if (user) {
+                currentUser = user;
+                loginPage.style.display = 'none';
+                
+                if (user.role === 'admin') {
+                    adminDashboard.style.display = 'block';
+                    loadAdminData();
+                } else {
+                    internoDashboard.style.display = 'block';
+                    document.getElementById('internoName').textContent = user.fullName;
+                    loadInternData();
+                }
+                
+                showNotification(`Bienvenido, ${user.fullName}`, 'success');
+            } else {
+                showNotification('Usuario o contraseña incorrectos', 'error');
+            }
+        });
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            logout();
+        });
+
+        document.getElementById('internoLogoutBtn').addEventListener('click', function() {
+            logout();
+        });
+
+        document.getElementById('exitExamBtn').addEventListener('click', function() {
+            if (confirm('¿Está seguro que desea salir del examen? Se perderá todo el progreso.')) {
+                clearInterval(examTimer);
+                examPage.style.display = 'none';
+                internoDashboard.style.display = 'block';
+            }
+        });
+
+        function logout() {
+            currentUser = null;
+            adminDashboard.style.display = 'none';
+            internoDashboard.style.display = 'none';
+            examPage.style.display = 'none';
+            loginPage.style.display = 'block';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            showNotification('Sesión cerrada correctamente', 'success');
+        }
+
+        // Tab functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabName = this.getAttribute('data-tab');
+                
+                // Update active tab
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update active tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                document.getElementById(`${tabName}Tab`).classList.add('active');
+            });
+        });
+
+        // Create user functionality
+        document.getElementById('createUserBtn').addEventListener('click', function() {
+            const username = document.getElementById('newUsername').value;
+            const password = document.getElementById('newPassword').value;
+            const fullName = document.getElementById('newFullName').value;
+
+            if (!username || !password || !fullName) {
+                showNotification('Por favor complete todos los campos', 'error');
+                return;
+            }
+
+            if (users.find(u => u.username === username)) {
+                showNotification('El usuario ya existe', 'error');
+                return;
+            }
+
+            users.push({
+                username,
+                password,
+                role: 'interno',
+                fullName
+            });
+
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('newFullName').value = '';
+
+            loadUsersList();
+            showNotification('Usuario creado correctamente', 'success');
+        });
+
+        // Create exam functionality
+        document.getElementById('createExamBtn').addEventListener('click', function() {
+            const title = document.getElementById('examTitle').value;
+            const description = document.getElementById('examDescription').value;
+            const timeLimit = parseInt(document.getElementById('examTime').value);
+
+            if (!title || !description) {
+                showNotification('Por favor complete todos los campos', 'error');
+                return;
+            }
+
+            const newExam = {
+                id: Date.now(),
+                title,
+                description,
+                timeLimit,
+                questions: []
+            };
+
+            exams.push(newExam);
+
+            document.getElementById('examTitle').value = '';
+            document.getElementById('examDescription').value = '';
+            document.getElementById('examTime').value = '30';
+
+            loadExamsList();
+            loadExamSelect();
+            showNotification('Examen creado correctamente', 'success');
+        });
+
+        // Load exam select
+        function loadExamSelect() {
+            const examSelect = document.getElementById('examSelect');
+            examSelect.innerHTML = '<option value="">Seleccionar un examen</option>';
+            
+            exams.forEach(exam => {
+                const option = document.createElement('option');
+                option.value = exam.id;
+                option.textContent = exam.title;
+                examSelect.appendChild(option);
+            });
+        }
+
+        // Exam select change
+        document.getElementById('examSelect').addEventListener('change', function() {
+            const examId = parseInt(this.value);
+            
+            if (examId) {
+                currentExam = exams.find(e => e.id === examId);
+                document.getElementById('questionForm').style.display = 'block';
+            } else {
+                document.getElementById('questionForm').style.display = 'none';
+                currentExam = null;
+            }
+        });
+
+        // Question type change
+        document.getElementById('questionType').addEventListener('change', function() {
+            const type = this.value;
+            
+            document.getElementById('selectOptions').style.display = type === 'select' ? 'block' : 'none';
+            document.getElementById('trueFalseOptions').style.display = type === 'truefalse' ? 'block' : 'none';
+            document.getElementById('interactionOptions').style.display = type === 'interaction' ? 'block' : 'none';
+        });
+
+        // Add option for select question
+        document.getElementById('addOptionBtn').addEventListener('click', function() {
+            const optionsContainer = document.getElementById('optionsContainer');
+            const optionCount = optionsContainer.children.length;
+            
+            const optionItem = document.createElement('div');
+            optionItem.className = 'option-item';
+            optionItem.innerHTML = `
+                <input type="text" class="form-control option-text" placeholder="Opción ${optionCount + 1}">
+                <input type="radio" name="correctOption" value="${optionCount}" class="correct-option"> Correcta
+            `;
+            
+            optionsContainer.appendChild(optionItem);
+        });
+
+        // Add question functionality
+        document.getElementById('addQuestionBtn').addEventListener('click', function() {
+            const questionText = document.getElementById('questionText').value;
+            const questionType = document.getElementById('questionType').value;
+            
+            if (!questionText) {
+                showNotification('Por favor ingrese el texto de la pregunta', 'error');
+                return;
+            }
+            
+            const newQuestion = {
+                id: Date.now(),
+                text: questionText,
+                type: questionType
+            };
+            
+            if (questionType === 'select') {
+                const optionTexts = Array.from(document.querySelectorAll('.option-text')).map(input => input.value);
+                const correctOptionIndex = Array.from(document.querySelectorAll('.correct-option')).findIndex(radio => radio.checked);
+                
+                if (optionTexts.some(text => !text)) {
+                    showNotification('Por favor complete todas las opciones', 'error');
+                    return;
+                }
+                
+                newQuestion.options = optionTexts;
+                newQuestion.correctAnswer = correctOptionIndex;
+            } else if (questionType === 'truefalse') {
+                newQuestion.correctAnswer = document.querySelector('input[name="tfAnswer"]:checked').value === 'true';
+            } else if (questionType === 'interaction') {
+                // For simplicity, we'll store the correct answer as the first item
+                newQuestion.correctAnswer = 0;
+            }
+            
+            if (!currentExam) {
+                showNotification('Por favor seleccione un examen', 'error');
+                return;
+            }
+            
+            currentExam.questions.push(newQuestion);
+            
+            // Reset form
+            document.getElementById('questionText').value = '';
+            document.getElementById('questionType').value = 'select';
+            document.getElementById('selectOptions').style.display = 'block';
+            document.getElementById('trueFalseOptions').style.display = 'none';
+            document.getElementById('interactionOptions').style.display = 'none';
+            
+            // Reset options
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = `
+                <div class="option-item">
+                    <input type="text" class="form-control option-text" placeholder="Opción 1">
+                    <input type="radio" name="correctOption" value="0" class="correct-option" checked> Correcta
+                </div>
+                <div class="option-item">
+                    <input type="text" class="form-control option-text" placeholder="Opción 2">
+                    <input type="radio" name="correctOption" value="1" class="correct-option"> Correcta
+                </div>
+            `;
+            
+            showNotification('Pregunta añadida correctamente', 'success');
+        });
+
+        // Download results as PDF
+        document.getElementById('downloadResultsBtn').addEventListener('click', function() {
+            generateResultsPDF();
+        });
+
+        function generateResultsPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Title
+            doc.setFontSize(18);
+            doc.text('Resultados de Exámenes', 105, 15, { align: 'center' });
+            
+            doc.setFontSize(12);
+            doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 20, 30);
+            
+            let yPosition = 45;
+            
+            results.forEach(result => {
+                const user = users.find(u => u.username === result.username);
+                const exam = exams.find(e => e.id === result.examId);
+                
+                if (user && exam) {
+                    doc.setFontSize(14);
+                    doc.text(`Usuario: ${user.fullName}`, 20, yPosition);
+                    doc.text(`Examen: ${exam.title}`, 20, yPosition + 10);
+                    doc.text(`Fecha: ${new Date(result.date).toLocaleDateString()}`, 20, yPosition + 20);
+                    doc.text(`Puntuación: ${result.score}/${exam.questions.length}`, 20, yPosition + 30);
+                    doc.text(`Porcentaje: ${Math.round((result.score / exam.questions.length) * 100)}%`, 20, yPosition + 40);
+                    
+                    yPosition += 55;
+                    
+                    // Add questions and answers
+                    doc.setFontSize(12);
+                    doc.text('Preguntas y Respuestas:', 20, yPosition);
+                    yPosition += 10;
+                    
+                    result.questions.forEach((questionResult, index) => {
+                        const question = exam.questions.find(q => q.id === questionResult.questionId);
+                        if (question) {
+                            doc.text(`${index + 1}. ${question.text}`, 20, yPosition);
+                            yPosition += 7;
+                            
+                            if (question.type === 'select') {
+                                question.options.forEach((option, i) => {
+                                    const isCorrect = i === question.correctAnswer;
+                                    const isSelected = questionResult.answer === i;
+                                    let text = `   ${String.fromCharCode(97 + i)}) ${option}`;
+                                    
+                                    if (isCorrect && isSelected) {
+                                        text += " ✓ (Correcta y seleccionada)";
+                                    } else if (isCorrect) {
+                                        text += " ✓ (Correcta)";
+                                    } else if (isSelected) {
+                                        text += " ✗ (Seleccionada)";
+                                    }
+                                    
+                                    doc.text(text, 25, yPosition);
+                                    yPosition += 7;
+                                });
+                            } else if (question.type === 'truefalse') {
+                                const correctAnswer = question.correctAnswer ? 'Verdadero' : 'Falso';
+                                const userAnswer = questionResult.answer ? 'Verdadero' : 'Falso';
+                                doc.text(`   Respuesta correcta: ${correctAnswer}`, 25, yPosition);
+                                yPosition += 7;
+                                doc.text(`   Tu respuesta: ${userAnswer}`, 25, yPosition);
+                                yPosition += 7;
+                            } else if (question.type === 'open') {
+                                doc.text(`   Respuesta: ${questionResult.answer || 'No respondida'}`, 25, yPosition);
+                                yPosition += 7;
+                            }
+                            
+                            yPosition += 5;
+                        }
+                        
+                        if (yPosition > 250) {
+                            doc.addPage();
+                            yPosition = 20;
+                        }
+                    });
+                    
+                    yPosition += 10;
+                    
+                    if (yPosition > 250) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                }
+            });
+            
+            doc.save('resultados_examenes.pdf');
+            showNotification('PDF descargado correctamente', 'success');
+        }
+
+        // Export/Import functionality
+        document.getElementById('exportUsersBtn').addEventListener('click', function() {
+            exportUsers();
+        });
+
+        document.getElementById('importUsersBtn').addEventListener('click', function() {
+            document.getElementById('usersFileInput').click();
+        });
+
+        document.getElementById('usersFileInput').addEventListener('change', function(e) {
+            importUsers(e.target.files[0]);
+        });
+
+        document.getElementById('exportExamsBtn').addEventListener('click', function() {
+            exportExams();
+        });
+
+        document.getElementById('importExamsBtn').addEventListener('click', function() {
+            document.getElementById('examsFileInput').click();
+        });
+
+        document.getElementById('examsFileInput').addEventListener('change', function(e) {
+            importExams(e.target.files[0]);
+        });
+
+        function exportUsers() {
+            const dataStr = JSON.stringify(users, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = 'usuarios_farmacia.json';
+            link.click();
+            
+            showNotification('Usuarios exportados correctamente', 'success');
+        }
+
+        function importUsers(file) {
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedUsers = JSON.parse(e.target.result);
+                    
+                    if (!Array.isArray(importedUsers)) {
+                        showNotification('El archivo no contiene datos válidos', 'error');
+                        return;
+                    }
+                    
+                    // Validate user structure
+                    const validUsers = importedUsers.filter(user => 
+                        user.username && user.password && user.role && user.fullName
+                    );
+                    
+                    if (validUsers.length === 0) {
+                        showNotification('No se encontraron usuarios válidos en el archivo', 'error');
+                        return;
+                    }
+                    
+                    // Add imported users, avoiding duplicates
+                    let addedCount = 0;
+                    validUsers.forEach(user => {
+                        if (!users.find(u => u.username === user.username)) {
+                            users.push(user);
+                            addedCount++;
+                        }
+                    });
+                    
+                    loadUsersList();
+                    document.getElementById('usersFileInput').value = '';
+                    
+                    if (addedCount > 0) {
+                        showNotification(`${addedCount} usuarios importados correctamente`, 'success');
+                    } else {
+                        showNotification('No se agregaron usuarios nuevos (posibles duplicados)', 'warning');
+                    }
+                } catch (error) {
+                    showNotification('Error al procesar el archivo', 'error');
+                    console.error(error);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function exportExams() {
+            const dataStr = JSON.stringify(exams, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = 'examenes_farmacia.json';
+            link.click();
+            
+            showNotification('Exámenes exportados correctamente', 'success');
+        }
+
+        function importExams(file) {
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedExams = JSON.parse(e.target.result);
+                    
+                    if (!Array.isArray(importedExams)) {
+                        showNotification('El archivo no contiene datos válidos', 'error');
+                        return;
+                    }
+                    
+                    // Validate exam structure
+                    const validExams = importedExams.filter(exam => 
+                        exam.title && exam.description && exam.timeLimit && Array.isArray(exam.questions)
+                    );
+                    
+                    if (validExams.length === 0) {
+                        showNotification('No se encontraron exámenes válidos en el archivo', 'error');
+                        return;
+                    }
+                    
+                    // Add imported exams, avoiding duplicates by ID
+                    let addedCount = 0;
+                    validExams.forEach(exam => {
+                        if (!exams.find(e => e.id === exam.id)) {
+                            exams.push(exam);
+                            addedCount++;
+                        }
+                    });
+                    
+                    loadExamsList();
+                    loadExamSelect();
+                    document.getElementById('examsFileInput').value = '';
+                    
+                    if (addedCount > 0) {
+                        showNotification(`${addedCount} exámenes importados correctamente`, 'success');
+                    } else {
+                        showNotification('No se agregaron exámenes nuevos (posibles duplicados)', 'warning');
+                    }
+                } catch (error) {
+                    showNotification('Error al procesar el archivo', 'error');
+                    console.error(error);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Load data functions
+        function loadAdminData() {
+            loadUsersList();
+            loadExamsList();
+            loadExamSelect();
+            loadResultsList();
+        }
+
+        function loadUsersList() {
+            const usersList = document.getElementById('usersList');
+            const internos = users.filter(u => u.role === 'interno');
+            
+            if (internos.length === 0) {
+                usersList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <p>No hay usuarios registrados</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            usersList.innerHTML = internos.map(user => `
+                <div class="exam-item">
+                    <div>
+                        <div class="exam-title">${user.fullName}</div>
+                        <div class="exam-date">Usuario: ${user.username}</div>
+                    </div>
+                    <button class="btn btn-danger" onclick="deleteUser('${user.username}')">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function loadExamsList() {
+            const examsList = document.getElementById('examsList');
+            
+            if (exams.length === 0) {
+                examsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p>No hay exámenes creados</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            examsList.innerHTML = exams.map(exam => `
+                <div class="exam-item">
+                    <div>
+                        <div class="exam-title">${exam.title}</div>
+                        <div class="exam-date">${exam.description}</div>
+                        <div class="exam-date">Preguntas: ${exam.questions.length}</div>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary" onclick="editExam(${exam.id})">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteExam(${exam.id})">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadResultsList() {
+            const resultsList = document.getElementById('resultsList');
+            
+            if (results.length === 0) {
+                resultsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-chart-bar"></i>
+                        <p>No hay resultados disponibles</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            resultsList.innerHTML = results.map(result => {
+                const user = users.find(u => u.username === result.username);
+                const exam = exams.find(e => e.id === result.examId);
+                const percentage = Math.round((result.score / exam.questions.length) * 100);
+                const passed = percentage >= 60;
+                
+                return `
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div>
+                                <div class="exam-title">${user ? user.fullName : 'Usuario desconocido'}</div>
+                                <div class="exam-date">${exam ? exam.title : 'Examen desconocido'}</div>
+                            </div>
+                            <div class="result-score ${passed ? 'pass' : 'fail'}">
+                                ${percentage}% (${result.score}/${exam ? exam.questions.length : '?'})
+                            </div>
+                        </div>
+                        <div class="exam-date">Fecha: ${new Date(result.date).toLocaleDateString()}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadInternData() {
+            loadAvailableExams();
+            loadMyResults();
+        }
+
+        function loadAvailableExams() {
+            const availableExams = document.getElementById('availableExams');
+            
+            if (exams.length === 0) {
+                availableExams.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p>No hay exámenes disponibles</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            availableExams.innerHTML = exams.map(exam => {
+                const userResults = results.filter(r => r.username === currentUser.username && r.examId === exam.id);
+                const completed = userResults.length > 0;
+                
+                return `
+                    <div class="exam-item">
+                        <div>
+                            <div class="exam-title">${exam.title}</div>
+                            <div class="exam-date">${exam.description}</div>
+                            <div class="exam-date">Tiempo límite: ${exam.timeLimit} minutos</div>
+                        </div>
+                        <div>
+                            ${completed ? 
+                                `<span class="btn btn-success">Completado</span>` : 
+                                `<button class="btn btn-primary" onclick="startExam(${exam.id})">
+                                    <i class="fas fa-play"></i> Comenzar
+                                </button>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadMyResults() {
+            const myResults = document.getElementById('myResults');
+            const userResults = results.filter(r => r.username === currentUser.username);
+            
+            if (userResults.length === 0) {
+                myResults.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-chart-bar"></i>
+                        <p>No has completado ningún examen</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            myResults.innerHTML = userResults.map(result => {
+                const exam = exams.find(e => e.id === result.examId);
+                const percentage = Math.round((result.score / exam.questions.length) * 100);
+                const passed = percentage >= 60;
+                
+                return `
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div>
+                                <div class="exam-title">${exam ? exam.title : 'Examen desconocido'}</div>
+                                </div>
+                            <div class="result-score ${passed ? 'pass' : 'fail'}">
+                                ${percentage}% (${result.score}/${exam ? exam.questions.length : '?'})
+                            </div>
+                        </div>
+                        <div class="exam-date">Fecha: ${new Date(result.date).toLocaleDateString()}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Start exam
+        function startExam(examId) {
+            const exam = exams.find(e => e.id === examId);
+            
+            if (!exam || exam.questions.length === 0) {
+                showNotification('El examen no tiene preguntas', 'error');
+                return;
+            }
+            
+            currentExam = exam;
+            currentQuestionIndex = 0;
+            timeRemaining = exam.timeLimit * 60; // Convert to seconds
+            
+            internoDashboard.style.display = 'none';
+            examPage.style.display = 'block';
+            document.getElementById('examPageTitle').textContent = exam.title;
+            
+            loadExamQuestions();
+            startExamTimer();
+        }
+
+        // Load exam questions
+        function loadExamQuestions() {
+            const examQuestions = document.getElementById('examQuestions');
+            const question = currentExam.questions[currentQuestionIndex];
+            
+            let questionHtml = `
+                <div class="question-container">
+                    <div class="question-title">${currentQuestionIndex + 1}. ${question.text}</div>
+            `;
+            
+            if (question.type === 'select') {
+                questionHtml += '<div class="options-list">';
+                question.options.forEach((option, index) => {
+                    questionHtml += `
+                        <div class="answer-option">
+                            <input type="radio" name="answer" value="${index}" id="option${index}">
+                            <label for="option${index}">${option}</label>
+                        </div>
+                    `;
+                });
+                questionHtml += '</div>';
+            } else if (question.type === 'open') {
+                questionHtml += `
+                    <div class="form-group">
+                        <textarea class="form-control" id="openAnswer" rows="4" placeholder="Escriba su respuesta aquí"></textarea>
+                    </div>
+                `;
+            } else if (question.type === 'truefalse') {
+                questionHtml += `
+                    <div class="options-list">
+                        <div class="answer-option">
+                            <input type="radio" name="answer" value="true" id="tfTrue">
+                            <label for="tfTrue">Verdadero</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" name="answer" value="false" id="tfFalse">
+                            <label for="tfFalse">Falso</label>
+                        </div>
+                    </div>
+                `;
+            } else if (question.type === 'interaction') {
+                questionHtml += `
+                    <div class="interaction-area">
+                        <div>Arrastre los elementos en orden correcto:</div>
+                        <div id="draggableItems" class="draggable-items">
+                            <div class="draggable-item" draggable="true">Elemento 1</div>
+                            <div class="draggable-item" draggable="true">Elemento 2</div>
+                            <div class="draggable-item" draggable="true">Elemento 3</div>
+                        </div>
+                        <div id="dropZone" class="drop-zone">
+                            Arrastre elementos aquí
+                        </div>
+                    </div>
+                `;
+            }
+            
+            questionHtml += '</div>';
+            examQuestions.innerHTML = questionHtml;
+            
+            // Update navigation
+            document.getElementById('questionIndicator').textContent = `Pregunta ${currentQuestionIndex + 1} de ${currentExam.questions.length}`;
+            document.getElementById('prevQuestionBtn').disabled = currentQuestionIndex === 0;
+            document.getElementById('nextQuestionBtn').style.display = currentQuestionIndex === currentExam.questions.length - 1 ? 'none' : 'inline-block';
+            document.getElementById('submitExamBtn').style.display = currentQuestionIndex === currentExam.questions.length - 1 ? 'inline-block' : 'none';
+            
+            // Setup drag and drop for interaction questions
+            if (question.type === 'interaction') {
+                setupDragAndDrop();
+            }
+        }
+
+        // Setup drag and drop
+        function setupDragAndDrop() {
+            const draggableItems = document.querySelectorAll('.draggable-item');
+            const dropZone = document.getElementById('dropZone');
+            
+            draggableItems.forEach(item => {
+                item.addEventListener('dragstart', function(e) {
+                    e.dataTransfer.setData('text/plain', this.textContent);
+                });
+            });
+            
+            dropZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('drag-over');
+            });
+            
+            dropZone.addEventListener('dragleave', function() {
+                this.classList.remove('drag-over');
+            });
+            
+            dropZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('drag-over');
+                
+                const data = e.dataTransfer.getData('text/plain');
+                const draggedItem = document.querySelector(`.draggable-item:nth-child(${data.split(' ')[1]})`);
+                
+                if (draggedItem) {
+                    this.appendChild(draggedItem);
+                }
+            });
+        }
+
+        // Exam timer
+        function startExamTimer() {
+            updateTimerDisplay();
+            
+            examTimer = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+                
+                if (timeRemaining <= 0) {
+                    clearInterval(examTimer);
+                    submitExam();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            document.getElementById('examTimer').textContent = `Tiempo restante: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Navigation
+        document.getElementById('prevQuestionBtn').addEventListener('click', function() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadExamQuestions();
+            }
+        });
+
+        document.getElementById('nextQuestionBtn').addEventListener('click', function() {
+            if (currentQuestionIndex < currentExam.questions.length - 1) {
+                currentQuestionIndex++;
+                loadExamQuestions();
+            }
+        });
+
+        document.getElementById('submitExamBtn').addEventListener('click', function() {
+            if (confirm('¿Está seguro que desea enviar el examen? No podrá modificar sus respuestas.')) {
+                submitExam();
+            }
+        });
+
+        // Submit exam
+        function submitExam() {
+            clearInterval(examTimer);
+            
+            let score = 0;
+            const questionsWithAnswers = [];
+            
+            // Calculate score and collect answers
+            currentExam.questions.forEach((question, index) => {
+                // In a real app, we would collect and evaluate answers here
+                // For demo purposes, we'll randomly assign correct answers
+                const isCorrect = Math.random() > 0.3;
+                if (isCorrect) {
+                    score++;
+                }
+                
+                // Store the question with the user's answer
+                questionsWithAnswers.push({
+                    questionId: question.id,
+                    answer: isCorrect ? question.correctAnswer : null,
+                    isCorrect: isCorrect
+                });
+            });
+            
+            const result = {
+                username: currentUser.username,
+                examId: currentExam.id,
+                score,
+                date: new Date().toISOString(),
+                questions: questionsWithAnswers
+            };
+            
+            results.push(result);
+            
+            examPage.style.display = 'none';
+            internoDashboard.style.display = 'block';
+            
+            loadInternData();
+            showNotification(`Examen enviado. Tu puntuación: ${score}/${currentExam.questions.length}`, 'success');
+        }
+
+        // Delete functions
+        function deleteUser(username) {
+            if (confirm('¿Está seguro que desea eliminar este usuario?')) {
+                users = users.filter(u => u.username !== username);
+                loadUsersList();
+                showNotification('Usuario eliminado correctamente', 'success');
+            }
+        }
+
+        function deleteExam(examId) {
+            if (confirm('¿Está seguro que desea eliminar este examen?')) {
+                exams = exams.filter(e => e.id !== examId);
+                results = results.filter(r => r.examId !== examId);
+                loadExamsList();
+                loadResultsList();
+                loadExamSelect();
+                showNotification('Examen eliminado correctamente', 'success');
+            }
+        }
+
+        // Edit exam functionality
+        function editExam(examId) {
+            examBeingEdited = exams.find(e => e.id === examId);
+            
+            if (!examBeingEdited) {
+                showNotification('Examen no encontrado', 'error');
+                return;
+            }
+            
+            document.getElementById('editExamTitle').value = examBeingEdited.title;
+            document.getElementById('editExamDescription').value = examBeingEdited.description;
+            document.getElementById('editExamTime').value = examBeingEdited.timeLimit;
+            
+            editExamModal.style.display = 'flex';
+        }
+
+        // Save edited exam
+        document.getElementById('saveExamBtn').addEventListener('click', function() {
+            if (!examBeingEdited) return;
+            
+            const title = document.getElementById('editExamTitle').value;
+            const description = document.getElementById('editExamDescription').value;
+            const timeLimit = parseInt(document.getElementById('editExamTime').value);
+            
+            if (!title || !description) {
+                showNotification('Por favor complete todos los campos', 'error');
+                return;
+            }
+            
+            examBeingEdited.title = title;
+            examBeingEdited.description = description;
+            examBeingEdited.timeLimit = timeLimit;
+            
+            editExamModal.style.display = 'none';
+            loadExamsList();
+            showNotification('Examen actualizado correctamente', 'success');
+        });
+
+        // Edit question functionality
+        function editQuestion(examId, questionId) {
+            const exam = exams.find(e => e.id === examId);
+            if (!exam) return;
+            
+            questionBeingEdited = exam.questions.find(q => q.id === questionId);
+            if (!questionBeingEdited) return;
+            
+            document.getElementById('editQuestionText').value = questionBeingEdited.text;
+            document.getElementById('editQuestionType').value = questionBeingEdited.type;
+            
+            // Show/hide appropriate options based on question type
+            const type = questionBeingEdited.type;
+            document.getElementById('editSelectOptions').style.display = type === 'select' ? 'block' : 'none';
+            document.getElementById('editTrueFalseOptions').style.display = type === 'truefalse' ? 'block' : 'none';
+            document.getElementById('editInteractionOptions').style.display = type === 'interaction' ? 'block' : 'none';
+            
+            // Load options for select questions
+            if (type === 'select') {
+                const editOptionsContainer = document.getElementById('editOptionsContainer');
+                editOptionsContainer.innerHTML = '';
+                
+                questionBeingEdited.options.forEach((option, index) => {
+                    const optionItem = document.createElement('div');
+                    optionItem.className = 'option-item';
+                    optionItem.innerHTML = `
+                        <input type="text" class="form-control option-text" value="${option}">
+                        <input type="radio" name="editCorrectOption" value="${index}" ${index === questionBeingEdited.correctAnswer ? 'checked' : ''} class="correct-option"> Correcta
+                    `;
+                    editOptionsContainer.appendChild(optionItem);
+                });
+            }
+            
+            // Load options for true/false questions
+            if (type === 'truefalse') {
+                document.getElementById(questionBeingEdited.correctAnswer ? 'editTfTrue' : 'editTfFalse').checked = true;
+            }
+            
+            editQuestionModal.style.display = 'flex';
+        }
+
+        // Save edited question
+        document.getElementById('saveQuestionBtn').addEventListener('click', function() {
+            if (!questionBeingEdited) return;
+            
+            const questionText = document.getElementById('editQuestionText').value;
+            const questionType = document.getElementById('editQuestionType').value;
+            
+            if (!questionText) {
+                showNotification('Por favor ingrese el texto de la pregunta', 'error');
+                return;
+            }
+            
+            questionBeingEdited.text = questionText;
+            questionBeingEdited.type = questionType;
+            
+            if (questionType === 'select') {
+                const optionTexts = Array.from(document.querySelectorAll('#editOptionsContainer .option-text')).map(input => input.value);
+                const correctOptionIndex = Array.from(document.querySelectorAll('#editOptionsContainer .correct-option')).findIndex(radio => radio.checked);
+                
+                if (optionTexts.some(text => !text)) {
+                    showNotification('Por favor complete todas las opciones', 'error');
+                    return;
+                }
+                
+                questionBeingEdited.options = optionTexts;
+                questionBeingEdited.correctAnswer = correctOptionIndex;
+            } else if (questionType === 'truefalse') {
+                questionBeingEdited.correctAnswer = document.querySelector('input[name="editTfAnswer"]:checked').value === 'true';
+            } else if (questionType === 'interaction') {
+                // For simplicity, we'll store the correct answer as the first item
+                questionBeingEdited.correctAnswer = 0;
+            }
+            
+            editQuestionModal.style.display = 'none';
+            loadExamsList();
+            showNotification('Pregunta actualizada correctamente', 'success');
+        });
+
+        // Close modals
+        document.querySelectorAll('.close-modal').forEach(button => {
+            button.addEventListener('click', function() {
+                editExamModal.style.display = 'none';
+                editQuestionModal.style.display = 'none';
+            });
+        });
+
+        document.getElementById('cancelEditExamBtn').addEventListener('click', function() {
+            editExamModal.style.display = 'none';
+        });
+
+        document.getElementById('cancelEditQuestionBtn').addEventListener('click', function() {
+            editQuestionModal.style.display = 'none';
+        });
+
+        // Notification function
+        function showNotification(message, type) {
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load sample data if needed
+            if (exams.length === 0) {
+                // Create sample exam
+                const sampleExam = {
+                    id: Date.now(),
+                    title: 'Conocimientos Básicos de Farmacia',
+                    description: 'Examen sobre conceptos fundamentales de farmacia',
+                    timeLimit: 30,
+                    questions: [
+                        {
+                            id: 1,
+                            text: '¿Cuál es la función principal de un farmacéutico?',
+                            type: 'select',
+                            options: [
+                                'Vender medicamentos',
+                                'Dispensar medicamentos y asesorar sobre su uso correcto',
+                                'Fabricar medicamentos',
+                                'Recetar medicamentos'
+                            ],
+                            correctAnswer: 1
+                        },
+                        {
+                            id: 2,
+                            text: '¿Qué significa la abreviatura "BID" en una receta médica?',
+                            type: 'open',
+                            correctAnswer: 'Dos veces al día'
+                        },
+                        {
+                            id: 3,
+                            text: 'Los medicamentos de venta libre requieren receta médica.',
+                            type: 'truefalse',
+                            correctAnswer: false
+                        },
+                        {
+                            id: 4,
+                            text: 'Ordene los siguientes pasos para dispensar un medicamento:',
+                            type: 'interaction',
+                            correctAnswer: 0
+                        }
+                    ]
+                };
+                
+                exams.push(sampleExam);
+            }
+        });
+    </script>
+</body>
+</html>
